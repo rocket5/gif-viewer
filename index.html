@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rocket 5 GIF Tools</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a2e;
+      color: #e0e0e0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 900px;
+      flex: 1;
+    }
+
+    /* Hero Section */
+    .hero {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .hero h1 {
+      font-size: 2.5rem;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 1rem;
+    }
+
+    .hero p {
+      font-size: 1.1rem;
+      color: #888;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    /* Tool Cards */
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .tool-card {
+      background: #242442;
+      border-radius: 12px;
+      padding: 2rem;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.2s ease;
+      border: 2px solid transparent;
+    }
+
+    .tool-card:hover {
+      border-color: #7b68ee;
+      background: #2d2d4a;
+      transform: translateY(-2px);
+    }
+
+    .tool-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    .tool-card h2 {
+      font-size: 1.25rem;
+      font-weight: 500;
+      color: #fff;
+      margin-bottom: 0.75rem;
+    }
+
+    .tool-card p {
+      color: #888;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      margin-bottom: 1rem;
+    }
+
+    .tool-features {
+      list-style: none;
+      font-size: 0.85rem;
+      color: #aaa;
+    }
+
+    .tool-features li {
+      padding: 0.25rem 0;
+    }
+
+    .tool-features li::before {
+      content: "•";
+      color: #7b68ee;
+      margin-right: 0.5rem;
+    }
+
+    .tool-link {
+      display: inline-block;
+      margin-top: 1rem;
+      color: #7b68ee;
+      font-size: 0.9rem;
+    }
+
+    .tool-card:hover .tool-link {
+      text-decoration: underline;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 2rem 1rem;
+      margin-top: 2rem;
+      color: #888;
+      font-size: 0.85rem;
+    }
+
+    footer a {
+      color: #7b68ee;
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="hero">
+      <h1>Rocket 5 GIF Tools</h1>
+      <p>Free browser-based tools for working with GIF files. No uploads, no servers - everything runs locally in your browser.</p>
+    </div>
+
+    <div class="tools-grid">
+      <a href="gif-viewer.html" class="tool-card">
+        <div class="tool-icon">🖼️</div>
+        <h2>Rocket 5 GIF Viewer</h2>
+        <p>Preview and inspect GIF files with frame-level playback control.</p>
+        <ul class="tool-features">
+          <li>Frame-by-frame navigation</li>
+          <li>Play, pause, and speed control</li>
+          <li>View file metadata and dimensions</li>
+          <li>Keyboard shortcuts for quick control</li>
+        </ul>
+        <span class="tool-link">Open GIF Viewer →</span>
+      </a>
+
+      <a href="gif-creator.html" class="tool-card">
+        <div class="tool-icon">🎬</div>
+        <h2>Rocket 5 GIF Creator</h2>
+        <p>Convert MP4 videos to GIF with trimming and quality controls.</p>
+        <ul class="tool-features">
+          <li>Trim video start and end points</li>
+          <li>Adjustable FPS (5-30 fps)</li>
+          <li>Quality and size presets</li>
+          <li>Instant preview and download</li>
+        </ul>
+        <span class="tool-link">Open GIF Creator →</span>
+      </a>
+    </div>
+  </div>
+
+  <footer>
+    <p>© 2025 Rocket 5 Studios. All rights reserved.</p>
+    <p><a href="https://rocket5studios.com" target="_blank" rel="noopener">Made by Rocket 5</a></p>
+  </footer>
+</body>
+</html>
