@@ -219,6 +219,7 @@
       background: #2d2d4a;
       padding: 0.75rem 1rem;
       border-radius: 6px;
+      position: relative;
     }
 
     .setting-label {
@@ -445,6 +446,9 @@
               <option value="5">5 fps</option>
               <option value="10" selected>10 fps</option>
               <option value="15">15 fps</option>
+              <option value="20">20 fps</option>
+              <option value="24">24 fps</option>
+              <option value="30">30 fps</option>
             </select>
           </div>
           <div class="setting">
@@ -453,6 +457,7 @@
               <option value="low">Low</option>
               <option value="medium" selected>Medium</option>
               <option value="high">High</option>
+              <option value="very-high">Very High</option>
             </select>
           </div>
           <div class="setting">
@@ -784,7 +789,7 @@
         const delay = Math.round(1000 / fps);
 
         // Quality affects the number of colors in palette
-        const maxColors = quality === 'low' ? 64 : quality === 'medium' ? 128 : 256;
+        const maxColors = quality === 'low' ? 64 : quality === 'medium' ? 128 : quality === 'high' ? 192 : 256;
 
         for (let i = 0; i < frames.length; i++) {
           const frame = frames[i];
