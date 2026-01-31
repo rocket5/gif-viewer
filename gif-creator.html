@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GIF Creator</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a2e;
+      color: #e0e0e0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 900px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      font-weight: 500;
+      color: #fff;
+    }
+
+    /* Drop Zone */
+    .drop-zone {
+      border: 3px dashed #4a4a6a;
+      border-radius: 12px;
+      padding: 4rem 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: #242442;
+    }
+
+    .drop-zone:hover,
+    .drop-zone.drag-over {
+      border-color: #7b68ee;
+      background: #2d2d4a;
+    }
+
+    .drop-zone-text {
+      font-size: 1.25rem;
+      color: #888;
+    }
+
+    .drop-zone-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    /* Loading/Converting State */
+    .loading {
+      text-align: center;
+      padding: 4rem;
+    }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid #4a4a6a;
+      border-top-color: #7b68ee;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 1rem;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .progress-text {
+      color: #888;
+      margin-top: 0.5rem;
+    }
+
+    /* Error State */
+    .error {
+      text-align: center;
+      padding: 3rem;
+      background: #2d2d4a;
+      border-radius: 12px;
+    }
+
+    .error-message {
+      color: #ff6b6b;
+      font-size: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    /* Preview Area */
+    .preview-container {
+      display: none;
+    }
+
+    .preview-container.active {
+      display: block;
+    }
+
+    .video-wrapper {
+      background: #2a2a2a;
+      border-radius: 8px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 1rem;
+      min-height: 200px;
+    }
+
+    #video-preview {
+      max-width: 100%;
+      max-height: 400px;
+      display: block;
+      border-radius: 4px;
+    }
+
+    /* Trim Controls */
+    .trim-controls {
+      margin-top: 1.5rem;
+      background: #242442;
+      border-radius: 8px;
+      padding: 1.25rem;
+    }
+
+    .trim-controls h2 {
+      font-size: 1rem;
+      font-weight: 500;
+      margin-bottom: 1rem;
+      color: #aaa;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .trim-slider-container {
+      position: relative;
+      height: 40px;
+      margin-bottom: 1rem;
+    }
+
+    .trim-track {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 8px;
+      background: #3d3d5c;
+      border-radius: 4px;
+      transform: translateY(-50%);
+    }
+
+    .trim-range {
+      position: absolute;
+      top: 50%;
+      height: 8px;
+      background: #7b68ee;
+      border-radius: 4px;
+      transform: translateY(-50%);
+    }
+
+    .trim-handle {
+      position: absolute;
+      top: 50%;
+      width: 16px;
+      height: 24px;
+      background: #fff;
+      border-radius: 4px;
+      transform: translate(-50%, -50%);
+      cursor: ew-resize;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .trim-handle:hover {
+      background: #e0e0ff;
+    }
+
+    .trim-times {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      color: #888;
+    }
+
+    .trim-time-input {
+      background: #2d2d4a;
+      border: 1px solid #4a4a6a;
+      color: #e0e0e0;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      width: 80px;
+      text-align: center;
+      font-family: inherit;
+    }
+
+    /* Settings Grid */
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .setting {
+      background: #2d2d4a;
+      padding: 0.75rem 1rem;
+      border-radius: 6px;
+    }
+
+    .setting-label {
+      font-size: 0.75rem;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+    }
+
+    .setting select {
+      width: 100%;
+      background: #3d3d5c;
+      border: 1px solid #4a4a6a;
+      color: #e0e0e0;
+      padding: 0.5rem;
+      border-radius: 4px;
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    .setting select:focus {
+      outline: none;
+      border-color: #7b68ee;
+    }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      background: #3d3d5c;
+      color: #e0e0e0;
+      border: none;
+      padding: 0.75rem 1.25rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn:hover {
+      background: #4d4d6c;
+    }
+
+    .btn:active {
+      background: #5d5d7c;
+      transform: scale(0.98);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: #7b68ee;
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: #8b78fe;
+    }
+
+    .btn-success {
+      background: #3d5c4a;
+    }
+
+    .btn-success:hover {
+      background: #4d6c5a;
+    }
+
+    .btn-danger {
+      background: #5c3d3d;
+    }
+
+    .btn-danger:hover {
+      background: #6c4d4d;
+    }
+
+    /* Attributes Panel */
+    .attributes {
+      margin-top: 1.5rem;
+      background: #242442;
+      border-radius: 8px;
+      padding: 1.25rem;
+    }
+
+    .attributes h2 {
+      font-size: 1rem;
+      font-weight: 500;
+      margin-bottom: 1rem;
+      color: #aaa;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .attributes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 1rem;
+    }
+
+    .attribute {
+      background: #2d2d4a;
+      padding: 0.75rem 1rem;
+      border-radius: 6px;
+    }
+
+    .attribute-label {
+      font-size: 0.75rem;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.25rem;
+    }
+
+    .attribute-value {
+      font-size: 1rem;
+      color: #fff;
+      word-break: break-all;
+    }
+
+    /* Complete State - GIF Preview */
+    .complete-container {
+      display: none;
+    }
+
+    .complete-container.active {
+      display: block;
+    }
+
+    .gif-wrapper {
+      background:
+        linear-gradient(45deg, #3a3a3a 25%, transparent 25%),
+        linear-gradient(-45deg, #3a3a3a 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #3a3a3a 75%),
+        linear-gradient(-45deg, transparent 75%, #3a3a3a 75%);
+      background-size: 20px 20px;
+      background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+      background-color: #2a2a2a;
+      border-radius: 8px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 1rem;
+      min-height: 200px;
+    }
+
+    #gif-preview {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 4px;
+    }
+
+    /* Utility Classes */
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>GIF Creator</h1>
+
+    <!-- Empty State / Drop Zone -->
+    <div id="drop-zone" class="drop-zone">
+      <div class="drop-zone-icon">🎬</div>
+      <div class="drop-zone-text">Drop an MP4 here or click to browse</div>
+      <input type="file" id="file-input" class="file-input" accept=".mp4,video/mp4">
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading" class="loading hidden">
+      <div class="spinner"></div>
+      <div id="loading-message">Loading video...</div>
+      <div class="progress-text" id="progress-text"></div>
+    </div>
+
+    <!-- Error State -->
+    <div id="error" class="error hidden">
+      <div class="error-message" id="error-message">Not a valid MP4 file</div>
+      <button class="btn btn-primary" id="try-again-btn">Try Again</button>
+    </div>
+
+    <!-- Preview State -->
+    <div id="preview" class="preview-container">
+      <div class="video-wrapper">
+        <video id="video-preview" controls></video>
+      </div>
+
+      <div class="trim-controls">
+        <h2>Trim Selection</h2>
+        <div class="trim-slider-container">
+          <div class="trim-track"></div>
+          <div class="trim-range" id="trim-range"></div>
+          <div class="trim-handle" id="handle-start"></div>
+          <div class="trim-handle" id="handle-end"></div>
+        </div>
+        <div class="trim-times">
+          <div>
+            <label>Start: </label>
+            <input type="text" class="trim-time-input" id="start-time-input" value="0:00">
+          </div>
+          <div>
+            <label>End: </label>
+            <input type="text" class="trim-time-input" id="end-time-input" value="0:00">
+          </div>
+        </div>
+
+        <div class="settings-grid">
+          <div class="setting">
+            <div class="setting-label">FPS</div>
+            <select id="fps-select">
+              <option value="5">5 fps</option>
+              <option value="10" selected>10 fps</option>
+              <option value="15">15 fps</option>
+            </select>
+          </div>
+          <div class="setting">
+            <div class="setting-label">Quality</div>
+            <select id="quality-select">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+          <div class="setting">
+            <div class="setting-label">Max Width</div>
+            <select id="width-select">
+              <option value="320">320 px</option>
+              <option value="480" selected>480 px</option>
+              <option value="640">640 px</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="btn btn-primary" id="convert-btn">Convert to GIF</button>
+        <button class="btn btn-danger" id="clear-btn">Clear</button>
+      </div>
+
+      <div class="attributes">
+        <h2>Video Information</h2>
+        <div class="attributes-grid">
+          <div class="attribute">
+            <div class="attribute-label">File Name</div>
+            <div class="attribute-value" id="attr-filename">-</div>
+          </div>
+          <div class="attribute">
+            <div class="attribute-label">File Size</div>
+            <div class="attribute-value" id="attr-filesize">-</div>
+          </div>
+          <div class="attribute">
+            <div class="attribute-label">Dimensions</div>
+            <div class="attribute-value" id="attr-dimensions">-</div>
+          </div>
+          <div class="attribute">
+            <div class="attribute-label">Duration</div>
+            <div class="attribute-value" id="attr-duration">-</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Complete State -->
+    <div id="complete" class="complete-container">
+      <div class="gif-wrapper">
+        <img id="gif-preview" alt="Generated GIF">
+      </div>
+
+      <div class="controls">
+        <button class="btn btn-success" id="download-btn">Download GIF</button>
+        <button class="btn" id="new-gif-btn">Create Another</button>
+      </div>
+
+      <div class="attributes">
+        <h2>GIF Information</h2>
+        <div class="attributes-grid">
+          <div class="attribute">
+            <div class="attribute-label">Dimensions</div>
+            <div class="attribute-value" id="gif-dimensions">-</div>
+          </div>
+          <div class="attribute">
+            <div class="attribute-label">Frames</div>
+            <div class="attribute-value" id="gif-frames">-</div>
+          </div>
+          <div class="attribute">
+            <div class="attribute-label">Duration</div>
+            <div class="attribute-value" id="gif-duration">-</div>
+          </div>
+          <div class="attribute">
+            <div class="attribute-label">File Size</div>
+            <div class="attribute-value" id="gif-filesize">-</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Prevent browser default file drop behavior
+    document.addEventListener('dragover', function(e) { e.preventDefault(); });
+    document.addEventListener('drop', function(e) { e.preventDefault(); });
+
+    (function() {
+      // gifenc library (loaded dynamically)
+      let gifenc = null;
+      // DOM Elements
+      const dropZone = document.getElementById('drop-zone');
+      const fileInput = document.getElementById('file-input');
+      const loadingEl = document.getElementById('loading');
+      const loadingMessage = document.getElementById('loading-message');
+      const progressText = document.getElementById('progress-text');
+      const errorEl = document.getElementById('error');
+      const errorMessage = document.getElementById('error-message');
+      const previewEl = document.getElementById('preview');
+      const completeEl = document.getElementById('complete');
+      const video = document.getElementById('video-preview');
+
+      // Trim controls
+      const trimRange = document.getElementById('trim-range');
+      const handleStart = document.getElementById('handle-start');
+      const handleEnd = document.getElementById('handle-end');
+      const startTimeInput = document.getElementById('start-time-input');
+      const endTimeInput = document.getElementById('end-time-input');
+
+      // Settings
+      const fpsSelect = document.getElementById('fps-select');
+      const qualitySelect = document.getElementById('quality-select');
+      const widthSelect = document.getElementById('width-select');
+
+      // Buttons
+      const convertBtn = document.getElementById('convert-btn');
+      const clearBtn = document.getElementById('clear-btn');
+      const tryAgainBtn = document.getElementById('try-again-btn');
+      const downloadBtn = document.getElementById('download-btn');
+      const newGifBtn = document.getElementById('new-gif-btn');
+
+      // Attribute elements
+      const attrFilename = document.getElementById('attr-filename');
+      const attrFilesize = document.getElementById('attr-filesize');
+      const attrDimensions = document.getElementById('attr-dimensions');
+      const attrDuration = document.getElementById('attr-duration');
+
+      // GIF info elements
+      const gifPreview = document.getElementById('gif-preview');
+      const gifDimensions = document.getElementById('gif-dimensions');
+      const gifFrames = document.getElementById('gif-frames');
+      const gifDuration = document.getElementById('gif-duration');
+      const gifFilesize = document.getElementById('gif-filesize');
+
+      // State
+      let currentFile = null;
+      let videoDuration = 0;
+      let startTime = 0;
+      let endTime = 0;
+      let gifBlob = null;
+      let isDraggingHandle = null;
+
+      // Utility: Format file size
+      function formatFileSize(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+      }
+
+      // Utility: Format time as M:SS.s
+      function formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = (seconds % 60).toFixed(1);
+        return `${mins}:${secs.padStart(4, '0')}`;
+      }
+
+      // Utility: Parse time from M:SS or M:SS.s format
+      function parseTime(str) {
+        const parts = str.split(':');
+        if (parts.length === 2) {
+          return parseInt(parts[0]) * 60 + parseFloat(parts[1]);
+        }
+        return parseFloat(str) || 0;
+      }
+
+      // Show/hide states
+      function showState(state) {
+        dropZone.classList.add('hidden');
+        loadingEl.classList.add('hidden');
+        errorEl.classList.add('hidden');
+        previewEl.classList.remove('active');
+        completeEl.classList.remove('active');
+
+        switch (state) {
+          case 'empty':
+            dropZone.classList.remove('hidden');
+            break;
+          case 'loading':
+            loadingEl.classList.remove('hidden');
+            break;
+          case 'error':
+            errorEl.classList.remove('hidden');
+            break;
+          case 'preview':
+            previewEl.classList.add('active');
+            break;
+          case 'complete':
+            completeEl.classList.add('active');
+            break;
+        }
+      }
+
+      // Show error
+      function showError(message) {
+        errorMessage.textContent = message;
+        showState('error');
+      }
+
+      // Reset state
+      function reset() {
+        currentFile = null;
+        videoDuration = 0;
+        startTime = 0;
+        endTime = 0;
+        gifBlob = null;
+        video.src = '';
+        gifPreview.src = '';
+        fileInput.value = '';
+        showState('empty');
+      }
+
+      // Update trim handles position
+      function updateTrimUI() {
+        const startPercent = (startTime / videoDuration) * 100;
+        const endPercent = (endTime / videoDuration) * 100;
+
+        handleStart.style.left = startPercent + '%';
+        handleEnd.style.left = endPercent + '%';
+        trimRange.style.left = startPercent + '%';
+        trimRange.style.width = (endPercent - startPercent) + '%';
+
+        startTimeInput.value = formatTime(startTime);
+        endTimeInput.value = formatTime(endTime);
+      }
+
+      // Handle drag for trim handles
+      function setupTrimHandles() {
+        const container = document.querySelector('.trim-slider-container');
+
+        function getTimeFromPosition(clientX) {
+          const rect = container.getBoundingClientRect();
+          const percent = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+          return percent * videoDuration;
+        }
+
+        function onMouseMove(e) {
+          if (!isDraggingHandle) return;
+
+          const time = getTimeFromPosition(e.clientX);
+
+          if (isDraggingHandle === 'start') {
+            startTime = Math.max(0, Math.min(time, endTime - 0.1));
+          } else if (isDraggingHandle === 'end') {
+            endTime = Math.min(videoDuration, Math.max(time, startTime + 0.1));
+          }
+
+          updateTrimUI();
+        }
+
+        function onMouseUp() {
+          isDraggingHandle = null;
+          document.removeEventListener('mousemove', onMouseMove);
+          document.removeEventListener('mouseup', onMouseUp);
+        }
+
+        handleStart.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+          isDraggingHandle = 'start';
+          document.addEventListener('mousemove', onMouseMove);
+          document.addEventListener('mouseup', onMouseUp);
+        });
+
+        handleEnd.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+          isDraggingHandle = 'end';
+          document.addEventListener('mousemove', onMouseMove);
+          document.addEventListener('mouseup', onMouseUp);
+        });
+
+        // Time input handlers
+        startTimeInput.addEventListener('change', () => {
+          const time = parseTime(startTimeInput.value);
+          startTime = Math.max(0, Math.min(time, endTime - 0.1));
+          updateTrimUI();
+        });
+
+        endTimeInput.addEventListener('change', () => {
+          const time = parseTime(endTimeInput.value);
+          endTime = Math.min(videoDuration, Math.max(time, startTime + 0.1));
+          updateTrimUI();
+        });
+      }
+
+      // Extract frames from video
+      async function extractFrames(video, startTime, endTime, fps, maxWidth) {
+        const frames = [];
+        const interval = 1 / fps;
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+        // Calculate dimensions maintaining aspect ratio
+        let width = video.videoWidth;
+        let height = video.videoHeight;
+
+        if (width > maxWidth) {
+          height = Math.round(height * (maxWidth / width));
+          width = maxWidth;
+        }
+
+        // Ensure dimensions are even (required by some encoders)
+        width = width & ~1;
+        height = height & ~1;
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const totalFrames = Math.ceil((endTime - startTime) * fps);
+
+        for (let i = 0; i < totalFrames; i++) {
+          const time = startTime + (i * interval);
+          if (time > endTime) break;
+
+          // Seek to time
+          video.currentTime = time;
+          await new Promise((resolve) => {
+            video.onseeked = resolve;
+          });
+
+          // Draw frame to canvas
+          ctx.drawImage(video, 0, 0, width, height);
+          const imageData = ctx.getImageData(0, 0, width, height);
+          frames.push(imageData);
+
+          // Update progress
+          progressText.textContent = `Extracting frame ${i + 1} of ${totalFrames}`;
+        }
+
+        return { frames, width, height };
+      }
+
+      // Create GIF from frames
+      async function createGIF(frames, width, height, fps, quality) {
+        const { GIFEncoder, quantize, applyPalette } = gifenc;
+        const gif = GIFEncoder();
+        const delay = Math.round(1000 / fps);
+
+        // Quality affects the number of colors in palette
+        const maxColors = quality === 'low' ? 64 : quality === 'medium' ? 128 : 256;
+
+        for (let i = 0; i < frames.length; i++) {
+          const frame = frames[i];
+
+          // Quantize to palette
+          const palette = quantize(frame.data, maxColors);
+          const indexed = applyPalette(frame.data, palette);
+
+          gif.writeFrame(indexed, width, height, { palette, delay });
+
+          // Update progress
+          progressText.textContent = `Encoding frame ${i + 1} of ${frames.length}`;
+
+          // Yield to UI thread periodically
+          if (i % 5 === 0) {
+            await new Promise(r => setTimeout(r, 0));
+          }
+        }
+
+        gif.finish();
+        return new Blob([gif.bytes()], { type: 'image/gif' });
+      }
+
+      // Process video file
+      async function processVideo(file) {
+        if (!file.type.includes('mp4') && !file.name.toLowerCase().endsWith('.mp4')) {
+          showError('Not a valid MP4 file');
+          return;
+        }
+
+        currentFile = file;
+        showState('loading');
+        loadingMessage.textContent = 'Loading video...';
+        progressText.textContent = '';
+
+        try {
+          // Load video
+          const url = URL.createObjectURL(file);
+          video.src = url;
+
+          await new Promise((resolve, reject) => {
+            video.onloadedmetadata = resolve;
+            video.onerror = () => reject(new Error('Failed to load video'));
+          });
+
+          videoDuration = video.duration;
+          startTime = 0;
+          endTime = Math.min(videoDuration, 10); // Default to first 10 seconds
+
+          // Update attributes
+          attrFilename.textContent = file.name;
+          attrFilesize.textContent = formatFileSize(file.size);
+          attrDimensions.textContent = video.videoWidth + ' x ' + video.videoHeight + ' px';
+          attrDuration.textContent = formatTime(videoDuration);
+
+          // Setup trim handles
+          updateTrimUI();
+
+          showState('preview');
+
+        } catch (err) {
+          console.error('Error loading video:', err);
+          showError('Failed to load video: ' + err.message);
+        }
+      }
+
+      // Convert video to GIF
+      async function convert() {
+        const fps = parseInt(fpsSelect.value);
+        const quality = qualitySelect.value;
+        const maxWidth = parseInt(widthSelect.value);
+
+        showState('loading');
+        loadingMessage.textContent = 'Converting to GIF...';
+        progressText.textContent = 'Loading encoder...';
+
+        try {
+          // Load gifenc library if not already loaded
+          if (!gifenc) {
+            gifenc = await import('https://cdn.jsdelivr.net/npm/gifenc@1.0.3/+esm');
+          }
+
+          // Extract frames
+          progressText.textContent = 'Preparing...';
+          const { frames, width, height } = await extractFrames(
+            video, startTime, endTime, fps, maxWidth
+          );
+
+          if (frames.length === 0) {
+            throw new Error('No frames extracted');
+          }
+
+          // Create GIF
+          loadingMessage.textContent = 'Encoding GIF...';
+          gifBlob = await createGIF(frames, width, height, fps, quality);
+
+          // Display result
+          const url = URL.createObjectURL(gifBlob);
+          gifPreview.src = url;
+
+          // Update GIF info
+          gifDimensions.textContent = width + ' x ' + height + ' px';
+          gifFrames.textContent = frames.length;
+          gifDuration.textContent = formatTime(endTime - startTime);
+          gifFilesize.textContent = formatFileSize(gifBlob.size);
+
+          showState('complete');
+
+        } catch (err) {
+          console.error('Error converting to GIF:', err);
+          showError('Failed to convert: ' + err.message);
+        }
+      }
+
+      // Download GIF
+      function downloadGIF() {
+        if (!gifBlob || !currentFile) return;
+
+        const baseName = currentFile.name.replace(/\.[^/.]+$/, '');
+        const fileName = baseName + '.gif';
+
+        const url = URL.createObjectURL(gifBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+
+      // Initialize trim handles
+      setupTrimHandles();
+
+      // Event: Drop zone click
+      dropZone.addEventListener('click', () => fileInput.click());
+
+      // Event: File input change
+      fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) processVideo(file);
+      });
+
+      // Event: Drag and drop on drop zone
+      dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('drag-over');
+      });
+
+      dropZone.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+      });
+
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.remove('drag-over');
+        const file = e.dataTransfer.files[0];
+        if (file) processVideo(file);
+      });
+
+      // Event: Convert
+      convertBtn.addEventListener('click', convert);
+
+      // Event: Clear
+      clearBtn.addEventListener('click', reset);
+
+      // Event: Try Again
+      tryAgainBtn.addEventListener('click', reset);
+
+      // Event: Download
+      downloadBtn.addEventListener('click', downloadGIF);
+
+      // Event: New GIF
+      newGifBtn.addEventListener('click', reset);
+
+      // Keyboard shortcuts
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          reset();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
